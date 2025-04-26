@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Tetris</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #222;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+        }
+
+        #tetris-container {
+            text-align: center;
+            position: relative;
+        }
+
+        #game-board {
+            background-color: #eee;
+            border: 1px solid #ccc;
+        }
+
+        #score {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        #game-over-message {
+            display: none;
+            color: #f00;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .cloudy-spiral {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            animation: cloudy-spiral-animation 1s ease-out;
+        }
+
+        @keyframes cloudy-spiral-animation {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+        }
+
+        #touch-controls {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .touch-button {
+            width: 80px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+            font-size: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            transition: background-color 0.2s ease;
+        }
+
+        .touch-button:active {
+            background-color: rgba(255, 255, 255, 0.6);
+        }
+
+        #touch-left, #touch-right, #touch-rotate, #touch-down {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="tetris-container">
+        <canvas id="game-board" width="300" height="600"></canvas>
+        <div id="score">Puntuación: 0</div>
+        <div id="game-over-message">¡Game Over!</div>
+        <div id="cloudy-spiral" class="cloudy-spiral"></div>
+    </div>
+
+    <div id="touch-controls">
+        <div class="touch-button" id="touch-left">&lt;</div>
+        <div class="touch-button" id="touch-rotate">Rotar</div>
+        <div class="touch-button" id="touch-right">&gt;</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-board');
+        const ctx = canvas.getContext('2d');
+        const cellSize = 30;
+        const rows = 20;
+        const columns = 10;
+        const grid = Array.from({ length: rows }, () => Array(columns).fill(0));
+        const shapes = [
+            [[1, 1, 1, 1]],
+            [[1, 1, 0], [0, 1, 1]],
+            [[0, 1, 1], [1, 1, 0]],
+            [[1, 1], [1, 1]],
+            [[0, 1, 1], [1, 1, 0]],
+            [[0, 1, 0], [1, 1, 1]],
+            [[1, 1, 0], [0, 1, 1]]
+        ];
+        const colors = ['#00FFFF', '#0000FF', '#FF7F00', '#FFFF00', '#00FF00', '#800080', '#FF0000'];
+        let currentPiece;
+        let dropInterval = 1000;
+        let dropCounter = 0;
+        let lastTime = 0;
+        let score = 0;
+        let gameOver = false;
+        let animationFrameId;
+
+        class Piece {
+            constructor(shape, color) {
+                this.shape = shape;
+                this.color = color;
+                this.x = Math.floor(columns / 2) - Math.floor(shape[0].length / 2);
+                this.y = 0;
+                this.rotation = 0;
+            }
+
+            draw() {
+                for (let y = 0; y < this.shape.length; y++) {
+                    for (let x = 0; x < this.shape[y].length; x++) {
+                        if (this.shape[y][x]) {
+                            ctx.fillStyle = this.color;
+                            ctx.fillRect((this.x + x) * cellSize, (this.y + y) * cellSize, cellSize, cellSize);
+                            ctx.strokeStyle = '#ccc';
+                            ctx.strokeRect((this.x + x) * cellSize, (this.y + y) * cellSize, cellSize, cellSize);
+                        }
+                    }
+                }
+            }
+
+            move(dx, dy) {
+                this.x += dx;
+                this.y += dy;
+            }
+
+            rotate() {
+                this.rotation = (this.rotation + 1) % 4;
+                this.shape = this.getRotatedShape();
+            }
+
+            getRotatedShape() {
+                const shape = this.shape;
+                let newShape = shape[0].map((_, index) => shape.map(row => row[index]));
+                if (this.rotation % 2 !== 0) {
+                    newShape = newShape.reverse();
+                }
+                return newShape;
+            }
+        }
+
+        function collision(piece, dx, dy) {
+            for (let y = 0; y < piece.shape.length; y++) {
+                for (let x = 0; x < piece.shape[y].length; x++) {
+                    if (piece.shape[y][x]) {
+                        let newX = piece.x + x + dx;
+                        let newY = piece.y + y + dy;
+                        if (newX < 0 || newX >= columns || newY >= rows || grid[newY] && grid[newY][newX] !== 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function createPiece() {
+            const shapeIndex = Math.floor(Math.random() * shapes.length);
+            const shape = shapes[shapeIndex];
+            const color = colors[shapeIndex];
+            const piece = new Piece(shape, color);
+
+            if (collision(piece, 0, 0)) {
+                gameOver = true;
+                cancelAnimationFrame(animationFrameId);
+                document.getElementById('game-over-message').style.display = 'block';
+            }
+
+            return piece;
+        }
+
+        function update(time = 0) {
+            if (gameOver) return;
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let y = 0; y < grid.length; y++) {
+                for (let x = 0; x < grid[y].length; x++) {
+                    if (grid[y][x] !== 0) {
+                        ctx.fillStyle = grid[y][x];
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                        ctx.strokeStyle = '#ccc';
+                        ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+
+            currentPiece.draw();
+
+            if (dropCounter > dropInterval) {
+                dropCounter = 0;
+
+                if (!collision(currentPiece, 0, 1)) {
+                    currentPiece.move(0, 1);
+                } else {
+                    currentPiece.shape.forEach((row, dy) => {
+                        row.forEach((value, dx) => {
+                           if (value) {
+                                grid[currentPiece.y + dy][currentPiece.x + dx] = currentPiece.color;
+                            }
+                        });
+                    });
+
+                    for (let row = rows - 1; row >= 0; row--) {
+                        if (grid[row].every(cell => cell !== 0)) {
+                            grid.splice(row, 1);
+                            grid.unshift(Array(columns).fill(0));
+                            score += 100;
+                            updateScore();
+                            createCloudySpiralAnimation();
+                        }
+                    }
+
+                    currentPiece = createPiece();
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(update);
+        }
+
+        function createCloudySpiralAnimation() {
+            const spiralElement = document.getElementById('cloudy-spiral');
+            spiralElement.style.opacity = 1;
+            setTimeout(() => {
+                spiralElement.style.opacity = 0;
+            }, 1000);
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `Puntuación: ${score}`;
+        }
+
+        function handleKeyPress(event) {
+            if (gameOver) return;
+
+            if (event.key === 'ArrowLeft') {
+                if (!collision(currentPiece, -1, 0)) {
+                    currentPiece.move(-1, 0);
+                }
+            } else if (event.key === 'ArrowRight') {
+                if (!collision(currentPiece, 1, 0)) {
+                    currentPiece.move(1, 0);
+                }
+            } else if (event.key === 'ArrowDown') {
+                if (!collision(currentPiece, 0, 1)) {
+                    currentPiece.move(0, 1);
+                }
+            } else if (event.key === 'ArrowUp') {
+                currentPiece.rotate();
+                if (collision(currentPiece, 0, 0)) {
+                    currentPiece.rotate();
+                    currentPiece.rotate();
+                    currentPiece.rotate();
+                }
+            }
+        }
+
+        document.getElementById('touch-left').addEventListener('click', () => {
+            if (!collision(currentPiece, -1, 0)) {
+                currentPiece.move(-1, 0);
+            }
+        });
+
+        document.getElementById('touch-right').addEventListener('click', () => {
+            if (!collision(currentPiece, 1, 0)) {
+                currentPiece.move(1, 0);
+            }
+        });
+
+        document.getElementById('touch-rotate').addEventListener('click', () => {
+            currentPiece.rotate();
+            if (collision(currentPiece, 0, 0)) {
+                currentPiece.rotate();
+                currentPiece.rotate();
+                currentPiece.rotate();
+            }
+        });
+
+        currentPiece = createPiece();
+        updateScore();
+
+        document.addEventListener('keydown', handleKeyPress);
+
+        update();
+    </script>
+</body>
+</html>
