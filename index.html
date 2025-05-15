@@ -6,7 +6,7 @@
     <title>Contrato - Exención de Obligación de Pago de Hamburguesa</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Georgia', serif; /* Fuente más formal */
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
@@ -14,7 +14,8 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden; /* Hide scrollbar initially */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-y: hidden; /* Hide vertical scroll initially */
         }
 
         .modal-backdrop {
@@ -34,101 +35,136 @@
             background-color: #fff;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); /* Sombra más pronunciada */
             text-align: center;
             max-width: 90%;
             width: 400px;
             box-sizing: border-box;
+            animation: fadeIn 0.5s ease-out; /* Simple fade-in animation */
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
 
         .modal-content h2 {
             margin-top: 0;
             color: #333;
+            font-size: 1.8em;
+            margin-bottom: 15px;
         }
 
         .modal-content p {
             color: #555;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            line-height: 1.5;
         }
 
         #signatureCanvas {
-            border: 1px solid #ccc;
+            border: 1px solid #aaa; /* Borde ligeramente más sutil */
             border-radius: 4px;
-            background-color: #eee;
+            background-color: #f9f9f9; /* Fondo más claro */
             cursor: crosshair;
             touch-action: none; /* Prevent scrolling/zooming on touch */
+            width: 100%; /* Make canvas responsive within modal */
+            height: 150px; /* Fixed height */
+            box-sizing: border-box; /* Include border in width */
         }
 
         .button-container {
-            margin-top: 20px;
+            margin-top: 25px; /* Más espacio */
             display: flex;
             justify-content: space-around;
-            gap: 10px;
+            gap: 15px; /* Más espacio entre botones */
         }
 
         button {
-            padding: 10px 20px;
+            padding: 12px 25px; /* Botones más grandes */
             border: none;
             border-radius: 5px;
             cursor: pointer;
             font-size: 1em;
-            transition: background-color 0.3s ease, opacity 0.3s ease;
+            transition: background-color 0.3s ease, opacity 0.3s ease, transform 0.1s ease;
+            flex-grow: 1; /* Make buttons fill space */
+        }
+         button:active {
+            transform: scale(0.98); /* Press effect */
         }
 
+
         button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-            opacity: 0.6;
+            background-color: #ddd; /* Color deshabilitado más claro */
+            color: #888;
+            opacity: 0.7;
         }
 
         #clearSignatureBtn {
-             background-color: #f0f0f0;
-            color: #555;
+             background-color: #e0e0e0; /* Color gris */
+            color: #444;
             border: 1px solid #ccc;
         }
 
         #clearSignatureBtn:hover:not(:disabled) {
-            background-color: #e0e0e0;
+            background-color: #d0d0d0;
         }
 
 
         #acceptSignatureBtn {
-            background-color: #4CAF50;
+            background-color: #0056b3; /* Azul más profesional */
             color: white;
         }
 
         #acceptSignatureBtn:hover:not(:disabled) {
-            background-color: #45a049;
+            background-color: #004080;
         }
 
         .contract-container {
             display: none; /* Hidden by default */
             background-color: #fff;
-            padding: 40px;
+            padding: 50px; /* Más padding */
             border-radius: 8px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             max-width: 800px;
             width: 90%;
             text-align: left;
-            line-height: 1.6;
-            margin: 20px auto; /* Center and add space */
+            line-height: 1.8; /* Más espacio entre líneas */
+            margin: 20px auto;
             overflow-y: auto; /* Allow scrolling if content is long */
-            max-height: 90vh; /* Limit height */
+            max-height: 95vh; /* Limit height */
+             box-sizing: border-box;
         }
 
-        .contract-container h1, .contract-container h2 {
+        .contract-container h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
+            color: #222; /* Color más oscuro */
+            font-size: 2.2em;
+            margin-bottom: 10px; /* Menos espacio si hay subtítulo */
+            margin-top: 0;
         }
+
+         .contract-container h2 {
+            text-align: center;
+            color: #444;
+            font-size: 1.5em;
+            margin-top: 0;
+            margin-bottom: 30px; /* Espacio después del subtítulo */
+        }
+
 
         .contract-container p {
-            margin-bottom: 15px;
-            color: #444;
+            margin-bottom: 20px; /* Más espacio entre párrafos */
+            color: #333;
+            text-align: justify; /* Texto justificado para formalidad */
         }
+         .contract-container p:last-of-type {
+            margin-bottom: 30px; /* Más espacio antes de las firmas */
+         }
+
 
         .contract-container strong {
-            color: #333;
+            color: #222; /* Color más oscuro para negritas */
         }
 
         .signature-line {
@@ -137,7 +173,43 @@
             border-top: 1px dashed #aaa;
             text-align: center;
             font-style: italic;
-            color: #666;
+            color: #555;
+            font-size: 0.95em;
+            min-height: 80px; /* Asegurar espacio para la imagen */
+        }
+         .signature-line:first-of-type {
+             margin-top: 60px; /* Espacio entre el texto y la primera firma */
+         }
+         .signature-line:last-of-type {
+             margin-top: 80px; /* Espacio entre las firmas */
+         }
+
+         /* Estilo para la imagen de la firma pre-incrustada de Mario */
+         .signature-img {
+             display: block; /* Para que la imagen ocupe su propia línea */
+             margin: 0 auto 5px auto; /* Centrar y añadir un poco de espacio debajo */
+             max-width: 180px; /* Controlar el tamaño de la imagen de la firma */
+             height: auto;
+             /* Puedes ajustar el opacity si quieres que se vea como marca de agua */
+             /* opacity: 0.8; */
+         }
+
+         /* Estilo para la imagen de la firma dibujada (inicialmente oculta) */
+         #samanthaDrawnSignature {
+             display: none; /* Oculta inicialmente */
+             margin: 0 auto 5px auto; /* Centrar y añadir un poco de espacio debajo */
+             max-width: 180px; /* Controlar el tamaño */
+             height: auto;
+         }
+
+
+        .legal-disclaimer {
+            margin-top: 50px; /* Más espacio para el disclaimer */
+            text-align: center;
+            font-size: 0.8em; /* Letra más pequeña */
+            color: #999; /* Color más claro */
+            padding-top: 20px;
+            border-top: 1px solid #eee; /* Línea separadora */
         }
     </style>
 </head>
@@ -156,6 +228,7 @@
     </div>
 
     <div class="contract-container" id="contractContainer">
+
         <h1>CONTRATO DE EXENCIÓN DE OBLIGACIÓN DE PAGO</h1>
         <h2>Respecto a Bien Mueble Consumible Específico</h2>
 
@@ -182,14 +255,16 @@
         <p>Leído que fue el presente CONTRATO y enteradas LAS PARTES de su contenido y alcance legal (para efectos del presente acuerdo), lo firman al calce el día de su fecha de celebración.</p>
 
         <div class="signature-line">
+            <img class="signature-img" src="./assets/firma_mario.jpeg" alt="Firma de Mario Alejandro Vázquez Ramirez">
             C. Mario Alejandro Vázquez Ramirez <br> (LA PARTE EXONERADA)
         </div>
 
         <div class="signature-line">
-            C. **Samantha Torres López** <br> (LA PARTE EXONERANTE)
+            <img id="samanthaDrawnSignature" src="" alt="Firma dibujada de Samantha Torres López">
+             C. Samantha Torres López <br> (LA PARTE EXONERANTE)
         </div>
 
-        <p style="margin-top: 30px; text-align: center; font-size: 0.9em; color: #777;">Este documento se genera con fines demostrativos y carece de validez legal real.</p>
+        <p class="legal-disclaimer">Este documento se genera con fines demostrativos y carece de validez legal real.</p>
 
     </div>
 
@@ -200,6 +275,7 @@
         const acceptSignatureBtn = document.getElementById('acceptSignatureBtn');
         const contractContainer = document.getElementById('contractContainer');
         const ctx = signatureCanvas.getContext('2d');
+        const samanthaDrawnSignatureImg = document.getElementById('samanthaDrawnSignature'); // Referencia a la nueva imagen
 
         let drawing = false;
         let hasDrawn = false; // Flag to check if drawing has occurred
@@ -214,6 +290,52 @@
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#000'; // Black ink color
+
+         // Adjust canvas size on load and resize to fit container
+         function resizeCanvas() {
+             const modalContent = signatureCanvas.parentElement;
+             // Use offsetWidth/offsetHeight as a fallback or alternative if clientWidth/Height is tricky
+             // Ensure canvas has a display style that allows layout calculation (e.g., block)
+             const modalWidth = signatureCanvas.offsetWidth; // Get calculated width
+             const modalHeight = signatureCanvas.offsetHeight; // Get calculated height
+
+             // Only resize the drawing buffer if the calculated size is valid and has changed
+             // Added a small tolerance (e.g., > 1) to avoid issues with 0 or tiny sizes
+             if (modalWidth > 1 && modalHeight > 1 && (signatureCanvas.width !== modalWidth || signatureCanvas.height !== modalHeight)) {
+                 // Optional: Save and restore drawing if needed upon resize (more complex)
+                 // const imgData = ctx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
+
+                 signatureCanvas.width = modalWidth; // Set drawing surface width
+                 signatureCanvas.height = 150; // Keep height fixed at 150px as originally intended
+
+                 ctx.lineWidth = 2; // Reset properties after resize
+                 ctx.lineCap = 'round';
+                 ctx.strokeStyle = '#000';
+
+                 // If drawing was saved: ctx.putImageData(imgData, 0, 0);
+             } else if (modalWidth > 1 && modalHeight > 1 && signatureCanvas.width === 0) {
+                  // Handle initial case where canvas might have 0 width before layout
+                   signatureCanvas.width = modalWidth;
+                   signatureCanvas.height = 150; // Restore default height
+                   ctx.lineWidth = 2;
+                   ctx.lineCap = 'round';
+                   ctx.strokeStyle = '#000';
+             }
+         }
+
+         // Add a small delay to ensure modal is rendered before resizing canvas
+         // Also listen to 'orientationchange' for mobile devices
+         window.addEventListener('load', () => {
+             signatureCanvas.style.display = 'block'; // Ensure it's visible for calculation
+             setTimeout(resizeCanvas, 100); // Delay slightly
+         });
+         window.addEventListener('resize', () => {
+             setTimeout(resizeCanvas, 100); // Delay slightly on resize too
+         });
+          window.addEventListener('orientationchange', () => {
+             setTimeout(resizeCanvas, 100); // Delay slightly on orientation change
+         });
+
 
         // --- Drawing Functions ---
 
@@ -242,7 +364,7 @@
             lastY = pos.y;
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
-            e.preventDefault(); // Prevent scrolling on touch
+            e.preventDefault(); // Prevent default touch behavior like scrolling, long press
         }
 
         function draw(e) {
@@ -260,10 +382,11 @@
                 hasDrawn = true;
                 acceptSignatureBtn.disabled = false; // Enable button only after first drawing action
             }
-             e.preventDefault(); // Prevent scrolling on touch
+             e.preventDefault(); // Prevent default touch behavior like scrolling
         }
 
         function stopDrawing() {
+            if (!drawing) return; // Prevent errors if stop is called when not drawing
             drawing = false;
             ctx.closePath();
         }
@@ -288,15 +411,31 @@
             ctx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
             hasDrawn = false; // Reset the drawing flag
             acceptSignatureBtn.disabled = true; // Disable button again
+            // Clear the drawn signature image as well if it was shown
+            samanthaDrawnSignatureImg.src = '';
+            samanthaDrawnSignatureImg.style.display = 'none';
         });
 
         acceptSignatureBtn.addEventListener('click', () => {
             if (hasDrawn) {
-                // Here you could potentially save the signature image data
-                // For this example, we just hide the modal and show the contract
+                // Capture the signature from the canvas as a Data URL
+                const drawnSignatureDataUrl = signatureCanvas.toDataURL('image/png');
+
+                // Set the source of the image tag for Samantha's signature
+                samanthaDrawnSignatureImg.src = drawnSignatureDataUrl;
+
+                // Make the image visible
+                samanthaDrawnSignatureImg.style.display = 'block';
+
+                // Hide the modal
                 modalBackdrop.style.display = 'none';
+
+                // Show the contract
                 contractContainer.style.display = 'block';
-                document.body.style.overflow = 'auto'; // Restore scrolling
+
+                // Restore scrolling
+                document.body.style.overflowY = 'auto';
+                document.body.style.overflowX = 'hidden';
             }
         });
 
@@ -304,6 +443,7 @@
         // The modal is visible by default via HTML structure and CSS display properties.
         // The contract is hidden by default via CSS display: none.
         // The accept button is disabled by default via HTML disabled attribute.
+        // Samantha's drawn signature image is hidden by default via CSS display: none.
 
         // Prevent background scrolling while modal is open
         document.body.style.overflow = 'hidden';
