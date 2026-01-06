@@ -2,448 +2,400 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrador de Préstamos</title>
-    <!-- Carga de Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Configuración de Tailwind y Fuente Inter -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                },
-            },
-        };
-    </script>
-
-    <!-- Estilos CSS personalizados -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema de Rutinas Diarias</title>
     <style>
-        /* Estilo para el cuerpo con un fondo suave */
-        body {
-            background-color: #f0f4f8;
-            font-family: 'Inter', sans-serif;
+        :root {
+            /* Paleta Base - Diseño Calmado */
+            --bg-body: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            
+            /* Colores de Navegación */
+            --nav-bg: #ffffff;
+            --nav-active: #0f172a;
+            --nav-inactive: #94a3b8;
+
+            /* Colores de Bloques (Pasteles Saturados) */
+            --c-morning: #e0f2fe; --b-morning: #0284c7; /* Azul Cielo */
+            --c-afternoon: #fff7ed; --b-afternoon: #ea580c; /* Naranja Suave */
+            --c-night: #f3e8ff; --b-night: #9333ea; /* Púrpura */
+            --c-check: #dcfce7; --b-check: #16a34a; /* Verde */
+            
+            --c-gray: #f1f5f9; --b-gray: #cbd5e1; /* Estado Completado */
+            
+            /* Variantes extra para bloques internos */
+            --blk-1: #dbeafe; --blk-1-a: #2563eb;
+            --blk-2: #fae8ff; --blk-2-a: #d946ef;
+            --blk-3: #ffedd5; --blk-3-a: #f97316;
+            --blk-4: #ecfccb; --blk-4-a: #84cc16;
+            --blk-5: #ccfbf1; --blk-5-a: #14b8a6;
+            --blk-6: #fee2e2; --blk-6-a: #ef4444;
         }
 
-        /* Efecto de gradiente en botones y cabecera */
-        .gradient-btn {
-            background-image: linear-gradient(to right, #4f46e5, #7c3aed);
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            padding-bottom: 100px; /* Espacio para el menú fijo */
+            padding-top: 10px;
         }
-        .gradient-header {
-            background-image: linear-gradient(to right, #4338ca, #6d28d9);
+
+        /* --- Barra de Progreso Superior --- */
+        .progress-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 6px;
+            background: #e2e8f0; z-index: 50;
         }
-        
-        /* Animación suave para los elementos de la lista */
-        .loan-item {
-            transition: all 0.2s ease-in-out;
+        .progress-bar {
+            height: 100%;
+            background: #10b981;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* --- Contenedor Principal --- */
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
             opacity: 1;
-            transform: translateY(0);
+            transition: opacity 0.2s ease;
         }
+
+        /* --- Header de Sección --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        h1 { font-size: 1.4rem; font-weight: 800; line-height: 1.2; }
+        .subtitle { font-size: 0.9rem; color: var(--text-secondary); display: block; margin-top: 4px; }
+        
+        .btn-reset {
+            background: white; border: 1px solid #cbd5e1;
+            color: var(--text-secondary); padding: 8px 12px;
+            border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-reset:active { background: #f1f5f9; transform: scale(0.95); }
+
+        /* --- Bloques de Rutina --- */
+        .routine-block {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-card);
+            border-left: 6px solid transparent;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+        }
+
+        .block-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .time-badge {
+            background: rgba(255,255,255,0.7); padding: 4px 8px;
+            border-radius: 6px; font-weight: 700; font-size: 0.95rem;
+        }
+        .block-title { font-size: 1.15rem; font-weight: 700; margin-top: 8px; }
+        .block-objective { font-size: 0.9rem; font-style: italic; opacity: 0.85; margin-bottom: 15px; display: block; }
+
+        .steps-list { list-style: none; margin-bottom: 18px; }
+        .steps-list li {
+            position: relative; padding-left: 20px; margin-bottom: 8px;
+            font-size: 1rem; color: #334155;
+        }
+        .steps-list li::before { content: "•"; position: absolute; left: 4px; font-weight: bold; }
+
+        .btn-complete {
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            background: white; color: var(--text-primary); font-weight: 700;
+            cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            font-size: 1rem; transition: transform 0.1s;
+        }
+        .btn-complete:active { transform: scale(0.97); }
+        .btn-complete::before { content: "☐"; font-size: 1.2rem; }
+
+        /* --- Estado Completado --- */
+        .routine-block.completed {
+            background-color: var(--c-gray) !important;
+            border-left-color: var(--b-gray) !important;
+            box-shadow: none; border: 1px solid #e2e8f0;
+            transform: scale(0.98); opacity: 0.8;
+        }
+        .routine-block.completed .block-title, 
+        .routine-block.completed .time-badge,
+        .routine-block.completed li { 
+            text-decoration: line-through; color: #94a3b8; 
+        }
+        .routine-block.completed .btn-complete {
+            background: transparent; color: #94a3b8; cursor: default; box-shadow: none;
+        }
+        .routine-block.completed .btn-complete::before { content: "✓"; }
+        .routine-block.completed .btn-complete span { display: none; }
+        .routine-block.completed .btn-complete::after { content: "Completado"; }
+
+        /* --- Navegación Fija Inferior --- */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--nav-bg);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-around; padding: 12px 10px 20px 10px;
+            z-index: 100; border-top: 1px solid #f1f5f9;
+        }
+        .nav-btn {
+            background: transparent; border: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--nav-inactive); cursor: pointer;
+            transition: all 0.2s; width: 60px;
+        }
+        .nav-icon {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; margin-bottom: 4px; transition: all 0.2s;
+        }
+        .nav-label { font-size: 0.7rem; font-weight: 600; }
+        
+        .nav-btn.active { color: var(--nav-active); }
+        .nav-btn.active .nav-icon {
+            background: var(--nav-active); color: white; transform: translateY(-5px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Estilos específicos de colores de bloque */
+        .b-blue { background-color: var(--blk-1); border-left-color: var(--blk-1-a); }
+        .b-purple { background-color: var(--blk-2); border-left-color: var(--blk-2-a); }
+        .b-orange { background-color: var(--blk-3); border-left-color: var(--blk-3-a); }
+        .b-green { background-color: var(--blk-4); border-left-color: var(--blk-4-a); }
+        .b-teal { background-color: var(--blk-5); border-left-color: var(--blk-5-a); }
+        .b-red { background-color: var(--blk-6); border-left-color: var(--blk-6-a); }
+
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <div class="min-h-screen">
-        <!-- Cabecera -->
-        <header class="gradient-header text-white p-6 shadow-md sticky top-0 z-10">
-            <div class="container mx-auto max-w-2xl flex items-center gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-8 h-8">
-                    <path d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6ZM12 1.5a.75.75 0 0 0-.75.75v3a.75.75 0 0 0 1.5 0v-3A.75.75 0 0 0 12 1.5Z" />
-                    <path d="M3.062 6.75a.75.75 0 0 0-1.124.936 9.001 9.001 0 0 0 17.123 0 .75.75 0 0 0-1.125-.936A7.501 7.501 0 0 1 3.062 6.75Z" />
-                </svg>
-                <!-- CAMBIO: Título actualizado -->
-                <h1 class="text-2xl font-bold">Préstamos</h1>
-            </div>
-        </header>
-
-        <!-- Contenido Principal -->
-        <main class="container mx-auto max-w-2xl p-4">
-
-            <!-- Tarjeta de Resumen y Nuevo Préstamo -->
-            <section class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <div class="text-center">
-                    <p class="text-lg text-gray-600">Total prestado</p>
-                    <h2 id="total-borrowed" class="text-5xl font-extrabold text-indigo-600 my-2">$0.00</h2>
-                    <button id="new-loan-btn" class="gradient-btn text-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-transform duration-200 flex items-center justify-center mx-auto mt-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-2">
-                            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clip-rule="evenodd" />
-                        </svg>
-                        Nuevo Préstamo
-                    </button>
-                </div>
-            </section>
-
-            <!-- Lista de Préstamos -->
-            <section class="bg-white rounded-lg shadow-lg overflow-hidden">
-                <!-- Cabecera de la lista -->
-                <div class="grid grid-cols-4 md:grid-cols-4 gap-4 p-4 border-b border-gray-200 bg-gray-50">
-                    <h3 class="font-semibold text-gray-700">Cantidad</h3>
-                    <h3 class="font-semibold text-gray-700">Concepto</h3>
-                    <h3 class="font-semibold text-gray-700 hidden md:block">Fecha</h3>
-                    <h3 class="font-semibold text-gray-700 text-right">Acciones</h3>
-                </div>
-                
-                <!-- Contenedor de la lista de préstamos -->
-                <div id="loan-list">
-                    <!-- Los préstamos se insertarán aquí -->
-                </div>
-
-                <!-- Pie de la lista (Total) -->
-                <div class="flex justify-end p-4 bg-gray-50 border-t border-gray-200">
-                    <span class="text-lg font-bold text-gray-800">Total:</span>
-                    <span id="list-total" class="text-lg font-bold text-gray-800 ml-4 w-32 text-right">$0.00</span>
-                </div>
-            </section>
-
-            <!-- Mensaje de guardado -->
-            <div class="text-center text-gray-500 mt-6 flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                    <path d="M10 2a.75.75 0 0 1 .75.75v.518a3.75 3.75 0 0 1 0 7.464v.518a.75.75 0 0 1-1.5 0v-.518a3.75 3.75 0 0 1 0-7.464V2.75A.75.75 0 0 1 10 2Z" />
-                    <path fill-rule="evenodd" d="M12.59 4.604a.75.75 0 0 1 .94-.332 5.25 5.25 0 0 1 1.92 6.674.75.75 0 0 1-1.251-.351 3.75 3.75 0 0 0-1.36-4.896.75.75 0 0 1 .751-.94v-.001Z" clip-rule="evenodd" />
-                    <path fill-rule="evenodd" d="M7.41 4.604a.75.75 0 0 0-.94-.332 5.25 5.25 0 0 0-1.92 6.674.75.75 0 0 0 1.251-.351 3.75 3.75 0 0 1 1.36-4.896.75.75 0 0 0-.751-.94v-.001Z" clip-rule="evenodd" />
-                    <path fill-rule="evenodd" d="M10 18a.75.75 0 0 1-.75-.75V16.75a5.25 5.25 0 0 1 0-10.5V5.75a.75.75 0 0 1 1.5 0v.5a3.75 3.75 0 0 0 0 7.5v.5a.75.75 0 0 1-.75.75Z" clip-rule="evenodd" />
-                    <path fill-rule="evenodd" d="M10 18a8.25 8.25 0 1 0 0-16.5 8.25 8.25 0 0 0 0 16.5ZM1.5 10a8.5 8.5 0 1 1 17 0 8.5 8.5 0 0 1-17 0Z" clip-rule="evenodd" />
-                </svg>
-                Datos guardados en tu navegador
-            </div>
-        </main>
+    <!-- Barra de Progreso Global (Top) -->
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
     </div>
 
-    <!-- Modal para Nuevo/Editar Préstamo -->
-    <div id="loan-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <h3 id="modal-title" class="text-xl font-semibold p-6 border-b border-gray-200">Nuevo Préstamo</h3>
-            <form id="loan-form" class="p-6">
-                <!-- Campo oculto para el ID de edición -->
-                <input type="hidden" id="loan-id">
-                
-                <!-- Campo Cantidad -->
-                <div class="mb-4">
-                    <label for="loan-amount" class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
-                        <input type="number" id="loan-amount" step="0.01" min="0.01" class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="100.00" required>
-                    </div>
-                </div>
-                
-                <!-- Campo Concepto -->
-                <div class="mb-6">
-                    <label for="loan-concept" class="block text-sm font-medium text-gray-700 mb-1">Concepto</label>
-                    <input type="text" id="loan-concept" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: Préstamo 1, Didi" required>
-                </div>
-                
-                <!-- Botones del formulario -->
-                <div class="flex justify-end gap-4">
-                    <button type="button" id="cancel-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="gradient-btn text-white font-semibold py-2 px-6 rounded-lg shadow hover:opacity-90 transition-opacity">
-                        Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
+    <!-- Contenedor Principal Dinámico -->
+    <div class="app-container" id="app">
+        <!-- El contenido se inyecta con JS -->
     </div>
 
-    <!-- Contenedor para mensajes de error/confirmación -->
-    <div id="message-box" class="fixed top-5 right-5 z-[100] hidden p-4 rounded-lg shadow-lg text-white max-w-sm">
-        <span id="message-text"></span>
-    </div>
+    <!-- Navegación Fija (Bottom) -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="switchSection('morning')">
+            <div class="nav-icon">☀️</div>
+            <span class="nav-label">Mañana</span>
+        </button>
+        <button class="nav-btn" onclick="switchSection('afternoon')">
+            <div class="nav-icon">🌤️</div>
+            <span class="nav-label">Tarde</span>
+        </button>
+        <button class="nav-btn" onclick="switchSection('night')">
+            <div class="nav-icon">🌙</div>
+            <span class="nav-label">Prep.</span>
+        </button>
+        <button class="nav-btn" onclick="switchSection('checklist')">
+            <div class="nav-icon">✅</div>
+            <span class="nav-label">Check</span>
+        </button>
+    </nav>
 
-    <!-- JavaScript -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- Elementos del DOM ---
-            const totalBorrowedEl = document.getElementById('total-borrowed');
-            const listTotalEl = document.getElementById('list-total');
-            const loanListEl = document.getElementById('loan-list');
-            const newLoanBtn = document.getElementById('new-loan-btn');
-            
-            // Modal
-            const modal = document.getElementById('loan-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const loanForm = document.getElementById('loan-form');
-            const cancelBtn = document.getElementById('cancel-btn');
-            const loanIdInput = document.getElementById('loan-id');
-            const loanAmountInput = document.getElementById('loan-amount');
-            const loanConceptInput = document.getElementById('loan-concept');
-            
-            // Mensajes
-            const messageBox = document.getElementById('message-box');
-            const messageText = document.getElementById('message-text');
-
-            // --- Estado de la Aplicación ---
-            let loans = [];
-            let editingId = null;
-
-            // --- Funciones ---
-
-            /**
-             * Muestra un mensaje temporal (como un "toast").
-             * @param {string} message - El texto del mensaje.
-             * @param {('success' | 'error')} type - El tipo de mensaje.
-             */
-            function showMessage(message, type = 'success') {
-                messageText.textContent = message;
-                messageBox.className = messageBox.className.replace(/bg-.*-500|hidden/g, ''); // Limpia clases
-                
-                if (type === 'success') {
-                    messageBox.classList.add('bg-green-500');
-                } else {
-                    messageBox.classList.add('bg-red-500');
-                }
-                
-                messageBox.classList.remove('hidden');
-                
-                setTimeout(() => {
-                    messageBox.classList.add('hidden');
-                }, 3000); // Oculta después de 3 segundos
+        // ==========================================
+        // BASE DE DATOS DE RUTINAS
+        // ==========================================
+        const appData = {
+            morning: {
+                id: 'morning',
+                title: 'Turno de Trabajo Mañana',
+                timeRange: '4:30 AM – 5:05 AM',
+                storageKey: 'routine_morning_v1',
+                blocks: [
+                    { id: 101, title: 'ACTIVACIÓN', time: '4:30 – 4:35', obj: 'Romper el sueño', color: 'b-blue', steps: ['Sonar la alarma', 'Levantarse ya', 'Ir a la cocina', 'Agua a calentar'] },
+                    { id: 102, title: 'MOCHILA', time: '4:35 – 4:45', obj: 'Mochila lista antes de aseo', color: 'b-orange', steps: ['Mochila vacía', 'Meter tupper', 'Meter ropa trabajo', 'Meter cargador', 'Meter suéter', 'Dejar junto a puerta'] },
+                    { id: 103, title: 'ROPA', time: '4:45 – 4:47', obj: 'Ropa personal lista', color: 'b-purple', steps: ['Revisar camisa', 'Revisar pantalón', 'Revisar calcetas', 'Revisar zapatos', 'Llevar todo al baño'] },
+                    { id: 104, title: 'HIGIENE', time: '4:47 – 4:50', obj: 'Higiene bucal', color: 'b-green', steps: ['Lavarse los dientes bien'] },
+                    { id: 105, title: 'BAÑO', time: '4:50 – 5:00', obj: 'Limpieza y vestir', color: 'b-teal', steps: ['Bañarse', 'Secarse', 'Vestirse', 'Ir al baño (prevención)'] },
+                    { id: 106, title: 'SALIDA', time: '5:00 – 5:05', obj: 'Check final crítico', color: 'b-red', steps: ['Mochila cerrada', 'Comida dentro', 'Ropa trabajo dentro', 'Cargador dentro', 'Llaves y dinero', 'Apagar luces', 'Salir'] }
+                ]
+            },
+            afternoon: {
+                id: 'afternoon',
+                title: 'Turno de Trabajo Tarde',
+                timeRange: '11:30 AM – 12:20 PM',
+                storageKey: 'routine_afternoon_v1',
+                blocks: [
+                    { id: 201, title: 'ACTIVACIÓN', time: '11:30 – 11:35', obj: 'Inicio de rutina', color: 'b-blue', steps: ['Dejar de hacer otras cosas', 'Hidratarse', 'Mentalizarse para salir'] },
+                    { id: 202, title: 'MOCHILA', time: '11:35 – 11:45', obj: 'Armado de equipo', color: 'b-orange', steps: ['Revisar mochila vacía', 'Meter comida del día', 'Meter ropa de trabajo', 'Meter suéter', 'Cargador celular', 'Dejar junto a puerta'] },
+                    { id: 203, title: 'ROPA', time: '11:45 – 11:50', obj: 'Preparación personal', color: 'b-purple', steps: ['Elegir ropa cómoda', 'Revisar zapatos', 'Llevar toalla al baño'] },
+                    { id: 204, title: 'HIGIENE', time: '11:50 – 11:55', obj: 'Limpieza bucal', color: 'b-green', steps: ['Lavarse los dientes', 'Usar hilo dental'] },
+                    { id: 205, title: 'BAÑO', time: '11:55 – 12:10', obj: 'Aseo personal', color: 'b-teal', steps: ['Ducha completa', 'Secarse bien', 'Vestirse', 'Peinarse'] },
+                    { id: 206, title: 'SALIDA', time: '12:10 – 12:20', obj: 'Salida sin estrés', color: 'b-red', steps: ['Verificar mochila completa', 'Verificar llaves', 'Verificar cartera/credencial', 'Cerrar ventanas', 'Salir con tiempo'] }
+                ]
+            },
+            night: {
+                id: 'night',
+                title: 'Preparación Noche Anterior',
+                timeRange: '11:00 PM – 11:30 PM',
+                storageKey: 'routine_night_v1',
+                blocks: [
+                    { id: 301, title: 'COMIDA', time: '23:00', obj: 'Evitar cocinar mañana', color: 'b-green', steps: ['Preparar tupper', 'Dejar en refri o mesa', 'Lavar trastes usados'] },
+                    { id: 302, title: 'ROPA TRABAJO', time: '23:10', obj: 'Uniforme listo', color: 'b-blue', steps: ['Buscar uniforme limpio', 'Doblar ordenado', 'Dejar visible'] },
+                    { id: 303, title: 'ROPA BAÑO', time: '23:15', obj: 'Para vestirse al salir', color: 'b-purple', steps: ['Sacar ropa interior', 'Sacar calcetas', 'Dejar toalla lista'] },
+                    { id: 304, title: 'MOCHILA', time: '23:20', obj: 'Pre-armado', color: 'b-orange', steps: ['Meter cargador', 'Meter suéter', 'Meter libreta/plumas', 'Dejar mochila abierta en silla'] },
+                    { id: 305, title: 'CHECK', time: '23:25', obj: 'Tranquilidad mental', color: 'b-teal', steps: ['Verificar alarma puesta', 'Celular cargando lejos'] }
+                ]
+            },
+            checklist: {
+                id: 'checklist',
+                title: 'Checklist Crítico',
+                timeRange: 'Verificación Final',
+                storageKey: 'routine_checklist_v1',
+                blocks: [
+                    { id: 401, title: 'MOCHILA', time: 'CHECK', obj: '¿Tiene todo?', color: 'b-red', steps: ['¿Está cerrada?', '¿Pesa lo correcto?'] },
+                    { id: 402, title: 'ELEMENTOS', time: 'CHECK', obj: 'Indispensables', color: 'b-orange', steps: ['Comida', 'Ropa trabajo', 'Cargador', 'Suéter'] },
+                    { id: 403, title: 'BOLSILLO', time: 'CHECK', obj: 'Para salir', color: 'b-blue', steps: ['Llaves de casa', 'Dinero / Cartera', 'Credencial trabajo', 'Cubrebocas (si aplica)'] }
+                ]
             }
+        };
 
-            /**
-             * Formatea un número como moneda (Ej: $1,234.50).
-             * @param {number} value - El valor numérico.
-             * @returns {string} - El valor formateado.
-             */
-            const formatCurrency = (value) => {
-                return new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD', // Puedes cambiarlo a MXN si prefieres
-                    minimumFractionDigits: 2
-                }).format(value);
-            };
+        // ==========================================
+        // ESTADO Y LÓGICA
+        // ==========================================
+        
+        // Estado actual de la aplicación
+        let currentSectionId = 'morning';
+        
+        // Función para cargar estado del localStorage
+        function loadState(key) {
+            return JSON.parse(localStorage.getItem(key)) || [];
+        }
 
-            /**
-             * Formatea una marca de tiempo a una cadena legible (DD/MM/YYYY, HH:MM).
-             * @param {number} timestamp - La marca de tiempo (Ej: Date.now()).
-             * @returns {string} - La fecha formateada.
-             */
-            const formatDate = (timestamp) => {
-                const date = new Date(timestamp);
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                return `${day}/${month}/${year}, ${hours}:${minutes}`;
-            };
+        // Función para guardar estado
+        function saveState(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
 
-            /**
-             * Guarda la lista de préstamos en localStorage.
-             * (Esta función ya estaba implementada)
-             */
-            const saveLoans = () => {
-                try {
-                    localStorage.setItem('loans', JSON.stringify(loans));
-                } catch (error)
-                {
-                    console.error("No se pudo guardar en localStorage:", error);
-                    showMessage("Error al guardar los datos.", 'error');
-                }
-            };
+        // Función principal de renderizado
+        function render() {
+            const container = document.getElementById('app');
+            const data = appData[currentSectionId];
+            const completedBlocks = loadState(data.storageKey);
+            
+            // 1. Actualizar Botones de Navegación
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            // Busca el botón que llama a esta sección (hack simple basado en onclick string)
+            const navButtons = document.querySelectorAll('.nav-btn');
+            if(currentSectionId === 'morning') navButtons[0].classList.add('active');
+            if(currentSectionId === 'afternoon') navButtons[1].classList.add('active');
+            if(currentSectionId === 'night') navButtons[2].classList.add('active');
+            if(currentSectionId === 'checklist') navButtons[3].classList.add('active');
 
-            /**
-             * Carga la lista de préstamos desde localStorage.
-             * (Esta función ya estaba implementada)
-             */
-            const loadLoans = () => {
-                try {
-                    const storedLoans = localStorage.getItem('loans');
-                    loans = storedLoans ? JSON.parse(storedLoans) : [];
-                } catch (error) {
-                    console.error("Error al cargar datos de localStorage:", error);
-                    loans = [];
-                    showMessage("No se pudieron cargar los datos guardados.", 'error');
-                }
-            };
+            // 2. Generar HTML del Header
+            let html = `
+                <header>
+                    <div>
+                        <h1>${data.title}</h1>
+                        <span class="subtitle">${data.timeRange}</span>
+                    </div>
+                    <button class="btn-reset" onclick="resetSection()">Reiniciar</button>
+                </header>
+            `;
 
-            /**
-             * Renderiza la lista de préstamos en el DOM y actualiza los totales.
-             */
-            const renderLoans = () => {
-                // Limpia la lista actual
-                loanListEl.innerHTML = '';
+            // 3. Generar Bloques
+            data.blocks.forEach(block => {
+                const isCompleted = completedBlocks.includes(block.id);
+                const stepsHtml = block.steps.map(s => `<li>${s}</li>`).join('');
                 
-                let total = 0;
-                
-                if (loans.length === 0) {
-                    loanListEl.innerHTML = `
-                        <p class="text-center text-gray-500 p-6">
-                            No hay préstamos registrados.
-                        </p>
-                    `;
-                } else {
-                    // Ordena por fecha más reciente primero
-                    const sortedLoans = [...loans].sort((a, b) => b.id - a.id);
-                    
-                    sortedLoans.forEach(loan => {
-                        total += loan.amount;
-                        
-                        const loanEl = document.createElement('div');
-                        loanEl.className = 'loan-item grid grid-cols-4 md:grid-cols-4 gap-4 p-4 border-b border-gray-200 items-center';
-                        loanEl.innerHTML = `
-                            <div class="font-medium text-gray-900">${formatCurrency(loan.amount)}</div>
-                            <div class="text-gray-700 truncate">${loan.concept}</div>
-                            <div class="text-gray-500 text-sm hidden md:block">${loan.date}</div>
-                            <div class="flex justify-end gap-2">
-                                <!-- CAMBIO: Botón Editar (Icono de Lápiz) -->
-                                <button data-id="${loan.id}" class="edit-btn bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                                      <path d="M13.586 3.586a2 2 0 1 1 2.828 2.828l-9.9 9.9-3.536.707a.75.75 0 0 1-.85-.85l.707-3.536 9.9-9.9Z" />
-                                      <path d="M17.657 2.343a.75.75 0 0 1 0 1.06l-2.121 2.121-1.06-1.06 2.12-2.121a.75.75 0 0 1 1.061 0Z" />
-                                    </svg>
-                                </button>
-                                <!-- CAMBIO: Botón Eliminar (Icono de Bote de Basura) -->
-                                <button data-id="${loan.id}" class="delete-btn bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                                      <path fill-rule="evenodd" d="M17 5a.75.75 0 0 1 .75.75V6.5a.75.75 0 0 1-1.5 0V6.25H3.75V6.5a.75.75 0 0 1-1.5 0V5.75a.75.75 0 0 1 .75-.75h13.5ZM5 7.75A.75.75 0 0 1 5.75 7h8.5a.75.75 0 0 1 .75.75v9.5a.75.75 0 0 1-.75.75h-8.5a.75.75 0 0 1-.75-.75v-9.5ZM6.5 9.25a.75.75 0 0 0-.75.75v6.5a.75.75 0 0 0 1.5 0v-6.5a.75.75 0 0 0-.75-.75ZM10 9.25a.75.75 0 0 0-.75.75v6.5a.75.75 0 0 0 1.5 0v-6.5a.75.75 0 0 0-.75-.75Zm3.5 0a.75.75 0 0 0-.75.75v6.5a.75.75 0 0 0 1.5 0v-6.5a.75.75 0 0 0-.75-.75Z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
+                html += `
+                    <div class="routine-block ${block.color} ${isCompleted ? 'completed' : ''}" id="blk-${block.id}">
+                        <div class="block-header">
+                            <div>
+                                <span class="time-badge">${block.time}</span>
+                                <h2 class="block-title">${block.title}</h2>
                             </div>
-                        `;
-                        loanListEl.appendChild(loanEl);
-                    });
-                }
-                
-                // Actualizar totales
-                const formattedTotal = formatCurrency(total);
-                totalBorrowedEl.textContent = formattedTotal;
-                listTotalEl.textContent = formattedTotal;
-            };
-
-            /**
-             * Abre el modal, opcionalmente rellenándolo para edición.
-             * @param {number | null} [id=null] - El ID del préstamo a editar, o null para crear uno nuevo.
-             */
-            const openModal = (id = null) => {
-                loanForm.reset();
-                if (id) {
-                    editingId = id;
-                    const loan = loans.find(l => l.id === id);
-                    if (loan) {
-                        modalTitle.textContent = 'Editar Préstamo';
-                        loanIdInput.value = id;
-                        loanAmountInput.value = loan.amount;
-                        loanConceptInput.value = loan.concept;
-                    }
-                } else {
-                    editingId = null;
-                    modalTitle.textContent = 'Nuevo Préstamo';
-                    loanIdInput.value = '';
-                }
-                modal.classList.remove('hidden');
-            };
-
-            /**
-             * Cierra el modal.
-             */
-            const closeModal = () => {
-                modal.classList.add('hidden');
-                loanForm.reset();
-                editingId = null;
-            };
-
-            /**
-             * Maneja el envío del formulario (Crear o Actualizar).
-             * @param {Event} e - El evento de envío del formulario.
-             */
-            const handleFormSubmit = (e) => {
-                e.preventDefault();
-                
-                const amount = parseFloat(loanAmountInput.value);
-                const concept = loanConceptInput.value.trim();
-                
-                // Validación simple
-                if (isNaN(amount) || amount <= 0) {
-                    showMessage("Por favor, introduce una cantidad válida.", 'error');
-                    loanAmountInput.focus();
-                    return;
-                }
-                if (concept === '') {
-                    showMessage("Por favor, introduce un concepto.", 'error');
-                    loanConceptInput.focus();
-                    return;
-                }
-                
-                if (editingId) {
-                    // --- Actualizando ---
-                    const index = loans.findIndex(l => l.id === editingId);
-                    if (index !== -1) {
-                        loans[index].amount = amount;
-                        loans[index].concept = concept;
-                        // Opcional: actualizar la fecha al editar
-                        // loans[index].date = formatDate(Date.now()); 
-                    }
-                    showMessage("Préstamo actualizado con éxito.", 'success');
-                } else {
-                    // --- Creando Nuevo ---
-                    const newLoan = {
-                        id: Date.now(), // ID único basado en la marca de tiempo
-                        amount: amount,
-                        concept: concept,
-                        date: formatDate(Date.now())
-                    };
-                    loans.push(newLoan);
-                    showMessage("Préstamo agregado con éxito.", 'success');
-                }
-                
-                saveLoans();
-                renderLoans();
-                closeModal();
-            };
-
-            /**
-             * Maneja los clics en la lista de préstamos (Editar o Eliminar).
-             * @param {Event} e - El evento de clic.
-             */
-            const handleListClick = (e) => {
-                const button = e.target.closest('button');
-                if (!button) return;
-
-                const id = Number(button.dataset.id);
-
-                if (button.classList.contains('edit-btn')) {
-                    // --- Botón Editar ---
-                    openModal(id);
-                } else if (button.classList.contains('delete-btn')) {
-                    // --- Botón Eliminar ---
-                    // (Aquí podrías agregar una confirmación)
-                    loans = loans.filter(l => l.id !== id);
-                    saveLoans();
-                    renderLoans();
-                    showMessage("Préstamo eliminado.", 'success');
-                }
-            };
-
-            // --- Inicialización y Event Listeners ---
-            
-            // Cargar datos al iniciar
-            loadLoans();
-            renderLoans();
-
-            // Abrir modal para nuevo préstamo
-            newLoanBtn.addEventListener('click', () => openModal());
-            
-            // Cerrar modal
-            cancelBtn.addEventListener('click', closeModal);
-            modal.addEventListener('click', (e) => {
-                // Cierra si se hace clic en el fondo oscuro
-                if (e.target === modal) {
-                    closeModal();
-                }
+                        </div>
+                        <span class="block-objective">${block.obj}</span>
+                        <ul class="steps-list">
+                            ${stepsHtml}
+                        </ul>
+                        <button class="btn-complete" onclick="toggleBlock(${block.id})">
+                            <span>Marcar como completado</span>
+                        </button>
+                    </div>
+                `;
             });
+
+            container.innerHTML = html;
             
-            // Guardar (Submit del formulario)
-            loanForm.addEventListener('submit', handleFormSubmit);
+            // 4. Actualizar Barra de Progreso
+            updateProgress(data.blocks.length, completedBlocks.length);
             
-            // Clics en la lista (delegación de eventos)
-            loanListEl.addEventListener('click', handleListClick);
+            // Scroll suave arriba al cambiar sección
+            // (Opcional, pero ayuda a sentir el cambio de contexto)
+        }
+
+        // Cambiar sección
+        function switchSection(sectionId) {
+            // Efecto visual de desvanecimiento simple
+            const container = document.getElementById('app');
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                currentSectionId = sectionId;
+                render();
+                container.style.opacity = '1';
+                window.scrollTo({top: 0, behavior: 'auto'});
+            }, 200);
+        }
+
+        // Marcar/Desmarcar bloque
+        function toggleBlock(blockId) {
+            const data = appData[currentSectionId];
+            let completed = loadState(data.storageKey);
+            
+            if (completed.includes(blockId)) {
+                completed = completed.filter(id => id !== blockId);
+            } else {
+                completed.push(blockId);
+            }
+            
+            saveState(data.storageKey, completed);
+            render(); // Re-renderizar para actualizar UI
+        }
+
+        // Reiniciar sección actual
+        function resetSection() {
+            if(confirm('¿Reiniciar esta sección?')) {
+                const data = appData[currentSectionId];
+                saveState(data.storageKey, []);
+                render();
+            }
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress(total, current) {
+            const percent = total === 0 ? 0 : (current / total) * 100;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            render();
         });
+
     </script>
 </body>
 </html>
-
 
